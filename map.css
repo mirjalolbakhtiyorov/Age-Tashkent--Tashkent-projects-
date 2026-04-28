@@ -1,0 +1,30 @@
+
+  var map = L.map('map').setView([41.2995, 69.2401], 12);
+
+  // Dark mode tile
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 19
+  }).addTo(map);
+
+  // Toshkent tumanlari markazlari
+  var districts = [
+    {name:"Mirzo Ulug‘bek", lat:41.3315, lng:69.3000},
+    {name:"Yunusobod", lat:41.3260, lng:69.2610},
+    {name:"Mirobod", lat:41.3080, lng:69.2680},
+    {name:"Yashnobod", lat:41.3330, lng:69.2750},
+    {name:"Olmazor", lat:41.2820, lng:69.2360},
+    {name:"Chilonzor", lat:41.2800, lng:69.1960},
+    {name:"Shayxontohur", lat:41.3180, lng:69.2160},
+    {name:"Bektemir", lat:41.2690, lng:69.3590},
+    {name:"Uchtepa", lat:41.2840, lng:69.2250},
+    {name:"Sergeli", lat:41.1960, lng:69.2580},
+    {name:"Yakkasaray", lat:41.2940, lng:69.2280},
+    {name:"Olmazor", lat:41.2760, lng:69.2290} // misol uchun takroriy
+  ];
+
+  districts.forEach(function(d){
+    L.marker([d.lat, d.lng]).addTo(map)
+      .bindPopup(`<b>${d.name} tumani</b>`);
+  });

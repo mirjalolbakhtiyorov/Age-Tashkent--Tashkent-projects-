@@ -1,0 +1,143 @@
+
+    // Ensure unified modal background & text
+    (function setModalColors(){
+      document.querySelectorAll('.modal').forEach(m => {
+        m.style.background = '#545353';
+        m.style.color = '#ffffff';
+      });
+    })();
+
+    const pieces = document.querySelectorAll('.timeline div');
+    const modals = document.querySelectorAll('.modal');
+    const closeTimers = new Map();
+
+    function openModal(id, piece){
+      const modal = document.getElementById(id);
+      if(!modal) return;
+      // cancel closing timer
+      if(closeTimers.has(id)){ clearTimeout(closeTimers.get(id)); closeTimers.delete(id); }
+      // make sure all other modals closed (optional) - close others for clarity
+      modals.forEach(m => { if(m.id !== id) { m.classList.remove('show'); m.setAttribute('aria-hidden','true'); } });
+      // show requested modal
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden','false');
+
+      // apply active style to the piece
+      if(piece){
+        pieces.forEach(p => p.classList.remove('active'));
+        piece.classList.add('active');
+      }
+    }
+
+    function closeModal(id){
+      const modal = document.getElementById(id);
+      if(!modal) return;
+      modal.classList.remove('show');
+      modal.setAttribute('aria-hidden','true');
+      // remove active style from corresponding piece
+      const piece = document.querySelector('.timeline div[data-modal="'+id+'"]');
+      if(piece) piece.classList.remove('active');
+    }
+
+    function closeAll(){
+      modals.forEach(m => { m.classList.remove('show'); m.setAttribute('aria-hidden','true'); });
+      pieces.forEach(p => p.classList.remove('active'));
+      closeTimers.clear();
+    }
+
+    // pointerenter/pointerleave logic for hover-open modals
+    pieces.forEach(piece => {
+      const modalId = piece.getAttribute('data-modal');
+
+      piece.addEventListener('pointerenter', () => {
+        if(closeTimers.has(modalId)){ clearTimeout(closeTimers.get(modalId)); closeTimers.delete(modalId); }
+        openModal(modalId, piece);
+      });
+
+      piece.addEventListener('pointerleave', () => {
+        // small delay to allow entering modal
+        const t = setTimeout(() => {
+          const modal = document.getElementById(modalId);
+          if(modal && modal.matches(':hover')) return; // if pointer moved into modal, don't close
+          closeModal(modalId);
+          closeTimers.delete(modalId);
+        }, 180);
+        closeTimers.set(modalId, t);
+      });
+
+      // keyboard accessibility
+      piece.addEventListener('focus', () => openModal(modalId, piece));
+      piece.addEventListener('blur', () => {
+        const t = setTimeout(()=> closeModal(modalId), 180);
+        closeTimers.set(modalId, t);
+      });
+
+      piece.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter' || e.key === ' '){
+          e.preventDefault();
+          const modal = document.getElementById(modalId);
+          if(modal.classList.contains('show')) closeModal(modalId);
+          else openModal(modalId, piece);
+        }
+      });
+    });
+
+    // keep modal open if pointer is inside it; close when pointer leaves
+    modals.forEach(modal => {
+      const id = modal.id;
+      modal.addEventListener('pointerenter', () => {
+        if(closeTimers.has(id)){ clearTimeout(closeTimers.get(id)); closeTimers.delete(id); }
+      });
+      modal.addEventListener('pointerleave', () => {
+        const t = setTimeout(() => {
+          const piece = document.querySelector('.timeline div[data-modal="'+id+'"]');
+          const overPiece = piece && piece.matches(':hover');
+          const overModal = modal.matches(':hover');
+          if(!overPiece && !overModal) closeModal(id);
+          closeTimers.delete(id);
+        }, 160);
+        closeTimers.set(id, t);
+      });
+    });
+
+    // close buttons
+    document.querySelectorAll('.close-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = btn.getAttribute('data-close') || btn.closest('.modal')?.id;
+        if(id) closeModal(id);
+      });
+    });
+
+    // click outside any modal or timeline piece closes all
+    document.addEventListener('pointerdown', (e) => {
+      const inModal = e.target.closest('.modal');
+      const inPiece = e.target.closest('.timeline div');
+      const inPrivacyBtn = e.target.closest('#privacy-btn');
+      if(!inModal && !inPiece && !inPrivacyBtn) closeAll();
+    });
+
+    // Escape closes all
+    document.addEventListener('keydown', (e) => {
+      if(e.key === 'Escape') closeAll();
+    });
+
+    // Privacy button opens privacy-modal (click)
+    document.getElementById('privacy-btn').addEventListener('click', () => {
+      const pm = document.getElementById('privacy-modal');
+      if(!pm) return;
+      // close other modals
+      closeAll();
+      pm.classList.add('show');
+      pm.setAttribute('aria-hidden','false');
+      // focus close button for accessibility
+      const cb = pm.querySelector('.close-btn');
+      if(cb) cb.focus();
+    });
+
+    // ensure modals keep requested style (in case of CSS override)
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.modal').forEach(m => {
+        m.style.background = '#545353';
+        m.style.color = '#fff';
+      });
+    });

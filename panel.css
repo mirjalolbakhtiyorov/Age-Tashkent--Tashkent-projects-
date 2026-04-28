@@ -1,0 +1,23 @@
+ const sidebar = document.getElementById('sidebar');
+    const lockBtn = document.getElementById('lockBtn');
+    const yearRange = document.getElementById('yearRange');
+    const yearDisplay = document.getElementById('yearDisplay');
+
+    // 🔄 Panelni ochish/yopish
+    lockBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('closed');
+      const isClosed = sidebar.classList.contains('closed');
+      lockBtn.textContent = isClosed ? '🔒' : '🔓';
+
+      // Qulf tugmasining joylashuvi
+      if (isClosed) {
+        lockBtn.style.left = '10px';
+      } else {
+        lockBtn.style.left = '21vw';
+      }
+    });
+
+    // 🕓 Yilni yangilash
+    yearRange.addEventListener('input', () => {
+      yearDisplay.textContent = yearRange.value;
+    });
